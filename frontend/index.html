@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StorySnap - AI Driven Story Generation & Sentiment Analysis</title>
+    <!-- Re-add Google Fonts for Poppins and Playfair Display -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset default styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body and typography */
+        body {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('static/wallpaper.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Intro Slide (Front Page) */
+        .intro-slide {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('static/wallpaper.jpg') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 1.2s ease-in-out, transform 0.8s ease-in-out;
+        }
+
+        .intro-slide.fade-out {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+
+        .intro-content {
+    text-align: center;
+    color: #000; /* Changed to black */
+    font-weight: bold;
+    padding: 30px;
+    background: #fff; /* Changed to pure white */
+    /* Removed backdrop-filter and border for a solid white square */
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transform: translateY(20px);
+    animation: slideUp 1s ease-out forwards;
+    max-width: 800px;
+    width: 90%;
+}
+
+        .intro-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3em;
+    font-weight: 700;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+    background: #1a2a44; /* Kept the gradient */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+        .intro-tagline {
+    font-size: 1.5em;
+    margin: 0 0 15px;
+    animation: fadeIn 1.5s ease-out 0.5s forwards;
+    color: #000;
+    font-weight: 400; /* Not bold to avoid overpowering the title */
+}
+
+        .intro-tagline strong {
+    font-weight: 700; /* Bold for "Tell. Explore. Evolve." */
+}
+
+        .intro-description {
+    font-size:0.9em;
+    animation: fadeIn 2s ease-out 1s forwards;
+    color: #000;
+    font-style: italic;
+    font-weight: 400; /* Not bold to differentiate from other elements */
+    margin-bottom: 20px;
+}
+        .intro-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    font-size: 0.9em;
+    color: #000;
+    font-weight: 400;
+}
+        .intro-features li {
+    margin: 10px 0;
+}
+
+        .intro-features li strong {
+    font-weight: 700; /* Bold for the feature descriptions */
+}
+
+        .intro-mood {
+    font-size: 1em;
+    color: #000;
+    font-style: italic;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.intro-mood strong.sentiment-highlight {
+    color: #1e90ff; /* Blue highlight for "Sentiment Analysis" */
+    font-weight: 700;
+}
+
+.intro-btn {
+    background: linear-gradient(90deg, #1a2a44, #1a2a44);
+    padding: 15px 40px;
+    margin-top: 25px;
+    font-size: 0.9em;
+    border-radius: 50px;
+    border: none;
+    color: #000;
+    font-weight: bold;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.intro-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 111, 97, 0.5);
+}
+
+.intro-footer {
+    font-size: 0.8em;
+    color: #000;
+    margin-top: 20px;
+    font-style: italic;
+    text-align: center;
+    font-weight: 400;
+}
+
+.intro-footer strong.sentiment-highlight {
+    color: #1e90ff; /* Blue highlight for "Sentiment Analysis" */
+    font-weight: 700;
+}
+
+
+        /* Animations */
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInText {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Container (Generator Page) with Background Image */
+        .container {
+            width: 100%;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('static/wallpaper.jpg') no-repeat center center fixed;
+            background-size: cover;
+            border-radius: 0;
+            box-shadow: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .container.fade-in {
+            animation: fadeInUp 1s ease-out forwards;
+        }
+
+        /* Header (AI STORY GENERATOR) */
+        h1 {
+            font-family: 'Playfair Display', serif; /* Reverted to Playfair Display */
+            font-size: 3em;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #3c75d2, #5cd4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Input Section (First area) */
+        .input-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            font-size: 1.5em;
+            color: #1a2a44;
+            margin-bottom: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Labels */
+        label {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            font-size: 1.2em;
+            color: #444;
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        /* Inputs and Textarea */
+        input[type="text"], textarea, select {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 25px;
+            border: 1px solid #d0d4d9;
+            border-radius: 8px;
+            font-size: 1.1em;
+            background-color: #fff;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            border-color: #1e90ff;
+            box-shadow: 0 0 8px rgba(30, 144, 255, 0.3);
+            outline: none;
+        }
+
+        /* Buttons */
+        button {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            background-color: #1a2a44;
+            color: #fff;
+            font-weight: bold;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background-color: #14213d;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Story Section (Second area) */
+        .story-section {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            flex: 1;
+        }
+
+        #storyOutput {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            color: #333;
+            font-size: 1.1em;
+            line-height: 1.8;
+            padding: 20px;
+            background-color: #fff;
+            border-left: 5px solid #1e90ff;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            white-space: pre-wrap;
+            transition: opacity 0.5s ease;
+        }
+
+        #storyOutput.loading {
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        #storyOutput.fade-in {
+            animation: fadeInText 0.8s ease forwards;
+        }
+
+        /* Audio Controls */
+        #audioControls, #happyAudioControls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px auto;
+        }
+
+        #playStoryBtn, #playHappyStoryBtn {
+            background-color: #00b894;
+        }
+
+        #playStoryBtn:hover, #playHappyStoryBtn:hover {
+            background-color: #009b77;
+        }
+
+        #stopStoryBtn, #stopHappyStoryBtn {
+            background-color: #e63946;
+        }
+
+        #stopStoryBtn:hover, #stopHappyStoryBtn:hover {
+            background-color: #c92f3a;
+        }
+
+        /* Reset Story Button */
+        #resetStoryBtn {
+            background-color: #f39c12;
+            margin: 30px auto;
+            display: block;
+        }
+
+        #resetStoryBtn:hover {
+            background-color: #e67e22;
+        }
+
+        /* Review Section */
+        #reviewSection {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        #reviewSection textarea {
+            min-height: 120px;
+            resize: vertical;
+            border-radius: 8px;
+        }
+
+        #sentimentResult {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            color: #666;
+            font-style: italic;
+            margin-top: 15px;
+            font-size: 1.2em;
+        }
+
+        /* Highlight Sentiment Analysis in Review Section */
+        .sentiment-highlight {
+            color: #1e90ff;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        /* Happy Ending Section */
+        #happyEndingSection {
+            margin-top: 40px;
+            background: rgba(241, 249, 246, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        #happyStory {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            color: #2d6a4f;
+            font-size: 1.1em;
+            line-height: 1.8;
+            padding: 20px;
+            background-color: #fff;
+            border-left: 5px solid #00b894;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+
+        /* Popup Styling (Interactive Questions & Continue/Exit) */
+        .popup {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.98);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .popup.show {
+            opacity: 1;
+        }
+
+        .popup-content p {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            font-size: 1.1em;
+            color: #1a2a44;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .popup-content select {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            border: 1px solid #d0d4d9;
+        }
+
+        .popup-content button {
+            background-color: #1e90ff;
+        }
+
+        .popup-content button:hover {
+            background-color: #187bcd;
+        }
+
+        /* Review Popup Styling (Black and White) */
+        .review-popup {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid #000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .review-popup.show {
+            opacity: 1;
+        }
+
+        .review-popup-content p {
+            font-family: 'Poppins', sans-serif; /* Reverted to Poppins */
+            font-size: 1.2em;
+            color: #000;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .review-popup-content button {
+            background-color: #000;
+            color: #fff;
+            font-weight: bold;
+            padding: 12px 25px;
+            margin: 0 10px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .review-popup-content button:hover {
+            background-color: #333;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2.5em;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            .intro-title {
+                font-size: 2.2em;
+            }
+            .intro-text {
+                font-size: 1.3em;
+            }
+            .intro-subtext {
+                font-size: 1.2em;
+            }
+            .intro-summary {
+                font-size: 1em;
+            }
+            .intro-content {
+                padding: 20px;
+                max-width: 600px;
+            }
+            .intro-btn {
+                padding: 12px 30px;
+                font-size: 1.2em;
+            }
+            .popup, .review-popup {
+                max-width: 90%;
+                padding: 20px;
+            }
+            #audioControls, #happyAudioControls {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Intro Slide (Front Page) -->
+    <!-- Intro Slide (Front Page) -->
+<div id="introSlide" class="intro-slide">
+    <div class="intro-content">
+        <h1 class="intro-title">StorySnap</h1>
+        <p class="intro-tagline"> <strong>Tell. Explore. Evolve.</strong> </p>
+        <p class="intro-description">You set the topic—we bring the story to life with interactive, AI-driven storytelling that adapts to your choices and emotions in real time.</p>
+        <ul class="intro-features">
+            <li>📖<strong>Create your own story</strong></li>
+            <li>🎯<strong>Shape ,Explore & Listen</strong></li>
+            <li>🤖<strong>AI adapts to your emotions</strong></li>
+        </ul>
+        <button class="intro-btn" onclick="startAdventure()">Start Your Adventure</button>
+        <p class="intro-footer">Powered by AI, NLP & <strong class="sentiment-highlight">Sentiment Analysis</strong> for a truly personalized journey.</p>
+    </div>
+</div>
+
+    <!-- Main App Content (Hidden Initially) -->
+    <div class="container" id="generatorContainer" style="display: none;">
+        <h1>StorySnap - AI Driven Story Generation & Sentiment Analysis</h1>
+
+        <div class="input-section">
+            <h2>Interactive Story</h2>
+            <label for="topic">Enter Your Story Topic:</label>
+            <input type="text" id="topic" placeholder="e.g., A lost astronaut in space">
+            <button onclick="startInteractiveStory()">Begin Your Story</button>
+        </div>
+
+        <div class="story-section">
+            <p id="storyOutput"></p>
+        </div>
+
+        <div id="audioControls" style="display: none;">
+            <button id="playStoryBtn" onclick="playStory()">Listen to Full Story</button>
+            <button id="stopStoryBtn" onclick="stopStory()">Stop Listening</button>
+        </div>
+
+        <div id="reviewSection" style="display: none;">
+            <h2>Review Your Story</h2>
+            <p>Tell us what you think! Our <span class="sentiment-highlight">Sentiment Analysis</span> will adapt the story to your feedback.</p>
+            <textarea id="review" placeholder="What did you think of the story?"></textarea>
+            <button onclick="analyzeReview()">Submit Review</button>
+            <p id="sentimentResult"></p>
+        </div>
+
+        <div id="happyEndingSection" style="display: none;">
+            <h2>Your Happy Ending</h2>
+            <p>Thanks to <span class="sentiment-highlight">Sentiment Analysis</span>, here’s a happier ending tailored for you!</p>
+            <p id="happyStory"></p>
+            <div id="happyAudioControls">
+                <button id="playHappyStoryBtn" onclick="playHappyStory()">Listen to Happy Ending</button>
+                <button id="stopHappyStoryBtn" onclick="stopHappyStory()">Stop Listening</button>
+            </div>
+        </div>
+
+        <!-- Button to Reset the Story -->
+        <button id="resetStoryBtn" onclick="resetStory()" style="display: none;">Start a New Adventure</button>
+
+        <!-- Pop-up for interactive questions -->
+        <div id="popupQuestion" class="popup" style="display: none;">
+            <div class="popup-content">
+                <p id="popupText"></p>
+                <select id="choiceDropdown">
+                    <option value="">-- Choose an option --</option>
+                    <option value="1"></option>
+                    <option value="2"></option>
+                    <option value="3"></option>
+                </select>
+                <button onclick="submitChoice()">Submit Choice</button>
+            </div>
+        </div>
+
+        <!-- Pop-up for continue/exit -->
+        <div id="continueExitPopup" class="popup" style="display: none;">
+            <div class="popup-content">
+                <p>Would you like to continue or exit?</p>
+                <select id="continueExitDropdown">
+                    <option value="">-- Select --</option>
+                    <option value="continue">Continue</option>
+                    <option value="exit">Exit</option>
+                </select>
+                <button onclick="submitContinueExit()">Submit</button>
+            </div>
+        </div>
+
+        <!-- Pop-up for positive review feedback -->
+        <div id="positiveReviewPopup" class="review-popup" style="display: none;">
+            <div class="review-popup-content">
+                <p id="positiveReviewText">Thank you for your positive feedback! Our <span class="sentiment-highlight">Sentiment Analysis</span> loved hearing that!</p>
+                <button onclick="closePositiveReviewPopup()">OK</button>
+            </div>
+        </div>
+
+        <!-- Pop-up for negative review feedback -->
+        <div id="negativeReviewPopup" class="review-popup" style="display: none;">
+            <div class="review-popup-content">
+                <p id="negativeReviewText">Sorry you didn’t enjoy it! Our <span class="sentiment-highlight">Sentiment Analysis</span> suggests a happy ending—want to try it?</p>
+                <button onclick="requestHappyEnding()">Yes</button>
+                <button onclick="keepOriginalStory()">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let audio = null;
+        let currentStory = "";
+        let fullStoryGenerated = false;
+        let currentOptions = {};
+
+        // Function to position the popup at the top of the current viewport
+        function positionPopup(popup) {
+            const scrollY = window.scrollY || window.pageYOffset;
+            const offset = 20;
+            const topPosition = scrollY + offset;
+            console.log("Scroll Y:", scrollY);
+            console.log("Calculated Top Position:", topPosition);
+            popup.style.top = `${topPosition}px`;
+        }
+
+        // Function to set up event listeners for repositioning the popup
+        function setupPopupRepositioning(popup) {
+            const repositionPopup = () => {
+                if (popup.style.display !== "none") {
+                    positionPopup(popup);
+                }
+            };
+            window.addEventListener("scroll", repositionPopup);
+            window.addEventListener("resize", repositionPopup);
+            return repositionPopup;
+        }
+
+        // Function to clean up event listeners
+        function cleanupPopupRepositioning(popup, repositionHandler) {
+            window.removeEventListener("scroll", repositionHandler);
+            window.removeEventListener("resize", repositionHandler);
+        }
+
+        // Function to reset the story and UI
+        function resetStory() {
+            document.getElementById("storyOutput").innerText = "";
+            document.getElementById("storyOutput").classList.remove("loading", "fade-in");
+            document.getElementById("topic").value = "";
+            document.getElementById("review").value = "";
+            document.getElementById("sentimentResult").innerText = "";
+            document.getElementById("reviewSection").style.display = "none";
+            document.getElementById("happyStory").innerText = "";
+            document.getElementById("happyEndingSection").style.display = "none";
+            document.getElementById("happyAudioControls").style.display = "none";
+            document.getElementById("audioControls").style.display = "none";
+            document.getElementById("resetStoryBtn").style.display = "none";
+            currentStory = "";
+            fullStoryGenerated = false;
+            currentOptions = {};
+            stopStory();
+            stopHappyStory();
+            const popups = [
+                document.getElementById("popupQuestion"),
+                document.getElementById("continueExitPopup"),
+                document.getElementById("positiveReviewPopup"),
+                document.getElementById("negativeReviewPopup")
+            ];
+            popups.forEach(popup => {
+                popup.classList.remove("show");
+                popup.style.display = "none";
+                const repositionHandler = popup.dataset.repositionHandler;
+                if (repositionHandler) {
+                    cleanupPopupRepositioning(popup, repositionHandler);
+                }
+            });
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function startAdventure() {
+            const introSlide = document.getElementById("introSlide");
+            const generatorContainer = document.getElementById("generatorContainer");
+            introSlide.classList.add("fade-out");
+            setTimeout(() => {
+                introSlide.style.display = "none";
+                generatorContainer.style.display = "block";
+                generatorContainer.classList.add("fade-in");
+            }, 1200);
+        }
+
+        async function startInteractiveStory() {
+            let topic = document.getElementById("topic").value || "A mysterious adventure";
+            document.getElementById("storyOutput").innerText = "Generating your story...";
+            document.getElementById("storyOutput").classList.add("loading");
+            let response = await fetch("/start_interactive_story", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ topic: topic })
+            });
+            let data = await response.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            currentStory = data.story_part;
+            document.getElementById("storyOutput").innerText = currentStory;
+            document.getElementById("storyOutput").classList.remove("loading");
+            document.getElementById("storyOutput").classList.add("fade-in");
+            setTimeout(() => showQuestionPopup(data.question, data.options), 500);
+        }
+
+        function showQuestionPopup(question, options) {
+            document.getElementById("popupText").innerText = question;
+            let dropdown = document.getElementById("choiceDropdown");
+            dropdown.options[1].text = options["1"];
+            dropdown.options[1].value = "1";
+            dropdown.options[2].text = options["2"];
+            dropdown.options[2].value = "2";
+            dropdown.options[3].text = options["3"];
+            dropdown.options[3].value = "3";
+            currentOptions = options;
+            const popup = document.getElementById("popupQuestion");
+            popup.style.display = "block";
+            positionPopup(popup);
+            setTimeout(() => popup.classList.add("show"), 10);
+            const repositionHandler = setupPopupRepositioning(popup);
+            popup.dataset.repositionHandler = repositionHandler;
+        }
+
+        async function submitChoice() {
+            let choice = document.getElementById("choiceDropdown").value;
+            if (!choice) return;
+            let choiceText = currentOptions[choice];
+            const popup = document.getElementById("popupQuestion");
+            popup.classList.remove("show");
+            setTimeout(() => {
+                popup.style.display = "none";
+                const repositionHandler = popup.dataset.repositionHandler;
+                cleanupPopupRepositioning(popup, repositionHandler);
+            }, 300);
+            document.getElementById("storyOutput").innerText = currentStory + "\n\nAdding your choice...";
+            document.getElementById("storyOutput").classList.add("loading");
+            let response = await fetch("/continue_story", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ choice: choice, choice_text: choiceText, current_story: currentStory })
+            });
+            let data = await response.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            currentStory += "\n\n" + data.story_part;
+            document.getElementById("storyOutput").innerText = currentStory;
+            document.getElementById("storyOutput").classList.remove("loading");
+            document.getElementById("storyOutput").classList.add("fade-in");
+            if (data.stage === "middle") {
+                setTimeout(() => showContinueExitPopup(), 500);
+            }
+        }
+
+        function showContinueExitPopup() {
+            const popup = document.getElementById("continueExitPopup");
+            popup.style.display = "block";
+            positionPopup(popup);
+            setTimeout(() => popup.classList.add("show"), 10);
+            const repositionHandler = setupPopupRepositioning(popup);
+            popup.dataset.repositionHandler = repositionHandler;
+        }
+
+        async function submitContinueExit() {
+            let choice = document.getElementById("continueExitDropdown").value;
+            if (!choice) return;
+            const popup = document.getElementById("continueExitPopup");
+            popup.classList.remove("show");
+            setTimeout(() => {
+                popup.style.display = "none";
+                const repositionHandler = popup.dataset.repositionHandler;
+                cleanupPopupRepositioning(popup, repositionHandler);
+            }, 300);
+            let response = await fetch("/continue_story", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ continue_or_exit: choice, current_story: currentStory })
+            });
+            let data = await response.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            currentStory += "\n\n" + data.story_part;
+            document.getElementById("storyOutput").innerText = currentStory;
+            if (data.stage === "middle") {
+                setTimeout(() => showQuestionPopup(data.question, data.options), 500);
+            } else if (data.stage === "end") {
+                fullStoryGenerated = true;
+                document.getElementById("audioControls").style.display = "flex";
+                document.getElementById("reviewSection").style.display = "block";
+                document.getElementById("resetStoryBtn").style.display = "block";
+            }
+        }
+
+        async function playStory() {
+            let response = await fetch("/text_to_speech", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+            });
+            let data = await response.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            if (audio) {
+                audio.pause();
+                audio = null;
+            }
+            audio = new Audio(data.audio_url);
+            audio.play();
+        }
+
+        function stopStory() {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                audio = null;
+            }
+        }
+
+        async function playHappyStory() {
+            let response = await fetch("/text_to_speech", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+            });
+            let data = await response.json();
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            if (audio) {
+                audio.pause();
+                audio = null;
+            }
+            audio = new Audio(data.audio_url);
+            audio.play();
+        }
+
+        function stopHappyStory() {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                audio = null;
+            }
+        }
+
+        async function analyzeReview() {
+            let reviewText = document.getElementById("review").value;
+            if (!reviewText) return;
+            let response = await fetch("/analyze_review", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ review: reviewText })
+            });
+            let data = await response.json();
+            if (data.sentiment === "Negative") {
+                const popup = document.getElementById("negativeReviewPopup");
+                popup.style.display = "block";
+                positionPopup(popup);
+                setTimeout(() => popup.classList.add("show"), 10);
+                const repositionHandler = setupPopupRepositioning(popup);
+                popup.dataset.repositionHandler = repositionHandler;
+            } else {
+                const popup = document.getElementById("positiveReviewPopup");
+                popup.style.display = "block";
+                positionPopup(popup);
+                setTimeout(() => popup.classList.add("show"), 10);
+                const repositionHandler = setupPopupRepositioning(popup);
+                popup.dataset.repositionHandler = repositionHandler;
+            }
+        }
+
+        function closePositiveReviewPopup() {
+            const popup = document.getElementById("positiveReviewPopup");
+            popup.classList.remove("show");
+            setTimeout(() => {
+                popup.style.display = "none";
+                const repositionHandler = popup.dataset.repositionHandler;
+                cleanupPopupRepositioning(popup, repositionHandler);
+            }, 300);
+        }
+
+        async function requestHappyEnding() {
+            const popup = document.getElementById("negativeReviewPopup");
+            popup.classList.remove("show");
+            setTimeout(() => {
+                popup.style.display = "none";
+                const repositionHandler = popup.dataset.repositionHandler;
+                cleanupPopupRepositioning(popup, repositionHandler);
+            }, 300);
+            let happyResponse = await fetch("/happy_ending", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+            });
+            let happyData = await happyResponse.json();
+            if (happyData.error) {
+                alert(happyData.error);
+                return;
+            }
+            currentStory = happyData.happy_story;
+            document.getElementById("storyOutput").innerText = currentStory;
+            document.getElementById("happyStory").innerText = happyData.happy_story;
+            document.getElementById("happyEndingSection").style.display = "block";
+            document.getElementById("happyAudioControls").style.display = "flex";
+        }
+
+        function keepOriginalStory() {
+            const popup = document.getElementById("negativeReviewPopup");
+            popup.classList.remove("show");
+            setTimeout(() => {
+                popup.style.display = "none";
+                const repositionHandler = popup.dataset.repositionHandler;
+                cleanupPopupRepositioning(popup, repositionHandler);
+            }, 300);
+            document.getElementById("sentimentResult").innerText = "Thanks for your feedback! Keeping the original story as per your preference.";
+        }
+    </script>
+</body>
+</html>
